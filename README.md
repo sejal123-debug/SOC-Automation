@@ -50,8 +50,11 @@ To build a self-contained lab for SOC automation and incident response training.
 
 ##  Network Diagram
 
+![soc drawio](https://github.com/user-attachments/assets/58910245-9502-4c54-85d7-239e4e0057e4)
 
+![soc2 drawio](https://github.com/user-attachments/assets/521099ef-db29-4f1a-9f0b-4af39e2b4808)
 
+- 
 
 ##  IP Address Scheme
 
@@ -74,18 +77,10 @@ Network Range: `192.168.10.0/24`
 - **Atomic Red Team**: Attack simulation framework
 - **Windows Server 2019/2022**
 - **Windows 10 Enterprise**
-- **Kali Linux**
 
 ## Setup Instructions
 
-1. **Install VirtualBox** or cloud VMs
-2. **Create and configure AD server**
-3. **Join Win10 machine to domain**
-4. **Install Splunk Enterprise**
-5. **Install and configure Splunk Forwarders**
-6. **Deploy Sysmon with SwiftOnSecurity config**
-7. **Connect all devices to the same internal network**
-8. **Verify log flows into Splunk**
+1. 
    
 
 ##  Resources
