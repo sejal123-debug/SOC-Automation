@@ -1,4 +1,4 @@
-# SOC Automation Lab Environment Setup
+# SOC Automation Lab Environment Project
 
 A complete on-premises SOC (Security Operations Center) lab built for DFIR (Digital Forensics & Incident Response), threat detection, and log analysis. This environment includes Active Directory, Windows 10, and Kali Linux machines, with centralized log collection and simulated attacks for detection engineering and investigation.
 
