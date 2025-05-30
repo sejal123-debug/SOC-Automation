@@ -1,0 +1,217 @@
+![Screenshot (1737)](https://github.com/user-attachments/assets/3572d8cb-3b80-436f-8b3a-661d2a05f3e0)##  SOC Automation Setup: Wazuh + TheHive
+
+This project sets up a basic SOC (Security Operations Center) automation environment using **Wazuh** and **TheHive** on **DigitalOcean**. It includes installation and basic hardening steps.
+
+## 📌 Prerequisites
+
+* DigitalOcean account (with \$200 free credit for new users)
+* Valid credit card for DigitalOcean
+* Public IP of your current machine (for firewall rules)
+* SSH client (e.g., PuTTY or native terminal)
+
+  
+#### 1. Install VirtualBox
+
+1. Go to [https://www.virtualbox.org](https://www.virtualbox.org)
+2. Download **VirtualBox 7.0** for your OS (e.g., Windows).
+
+#### 2. Download Windows 10 ISO
+
+1. Go to the [Microsoft Download Tool page](https://www.microsoft.com/software-download/windows10).
+2. Click **Download tool now**.
+
+#### 3. Create a Windows 10 VM in VirtualBox
+
+#### 4. Install Windows 10
+
+#### 5. Install Sysmon (System Monitor)
+
+a. Download Sysmon
+  1. Go to [Sysinternals Sysmon](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon)
+  2. Extract the ZIP file to a folder (e.g., `Downloads\Sysmon`).
+
+b. Download Sysmon Config File
+  1. Visit [SwiftOnSecurity's sysmon-config repo](https://github.com/SwiftOnSecurity/sysmon-config).
+  2. Find `sysmonconfig-export.xml`.
+  3. Click **Raw** → Right-click → Save As → Name it `sysmon-config.xml`.
+  4. Place it in the same folder as the extracted Sysmon.
+
+c. Install Sysmon via PowerShell
+  1. Open **PowerShell as Administrator**:
+  2. Change directory to where `sysmon64.exe` and config file are located:
+  
+     ```powershell
+     cd "C:\Users\<YourUsername>\Downloads\Sysmon"
+     ```
+  3. Install Sysmon with the config:
+
+     ```powershell
+     .\Sysmon64.exe -i sysmon-config.xml
+     ```
+     
+![Screenshot (1736)](https://github.com/user-attachments/assets/1c4773a2-13b4-4b25-a359-dcab937f121c)
+
+
+#### 6. Setting up Wazuh
+
+###  Create Droplet
+
+1. Go to DigitalOcean → Click on **Create** → **Droplet**
+2. Choose:
+   * **Region:** Nearest to you (e.g., Toronto)
+   * **Image:** Ubuntu 22.04 (LTS)
+   * **Plan:** \$48/month (Premium Intel, 4GB RAM, 50GB SSD)
+3. Choose **Password authentication** (or SSH key)
+4. Set hostname: `wazuh`
+5. Click **Create Droplet**
+
+
+###  Configure Firewall
+
+1. Go to **Networking** → **Firewalls** → Click **Create Firewall**
+2. Name it `firewall`
+3. Allow:
+   * **TCP** from **your public IP**
+   * **UDP** from **your public IP**
+4. Click **Create Firewall**
+5. Go to your Droplet → **Networking** → **Firewalls** → Attach `firewall` to `wazuh`
+
+###  Access Droplet
+* click **Access → Launch Console** in DigitalOcean dashboard
+
+###  Update & Upgrade VM
+
+```bash
+apt-get update && apt-get upgrade -y
+```
+![Screenshot (1737)](https://github.com/user-attachments/assets/db67afd4-0167-40fc-9973-170db8d556e1)
+
+###  Install Wazuh
+
+```bash
+curl -sO https://packages.wazuh.com/4.6/wazuh-install.sh
+sudo bash ./wazuh-install.sh -a
+```
+
+>  Copy and store the auto-generated `admin` password for the dashboard.
+
+### Access Wazuh Dashboard
+
+In your browser:
+
+```bash
+https://<WAZUH_PUBLIC_IP>
+```
+![image](https://github.com/user-attachments/assets/982bd562-d20e-4873-8cb9-a34db219e121)
+
+Click **Advanced → Proceed** and login with:
+
+* Username: `admin`
+* Password: (from install output)
+
+---
+
+##  2. Setting up TheHive
+
+###  Create Droplet
+
+1. Go to DigitalOcean → **Create** → **Droplet**
+2. Choose:
+   * Region: same (e.g., Toronto)
+   * Image: Ubuntu 22.04
+3. Password login or SSH key
+4. Set hostname: `thehive`
+5. Click **Create Droplet**
+
+###  Attach to Firewall
+
+1. Go to **Networking** → **Firewalls**
+2. Select your existing `firewall`
+3. Add droplet: `thehive`
+
+###  SSH into TheHive
+
+```bash
+ssh root@<THEHIVE_PUBLIC_IP>
+```
+
+##  Install TheHive Prerequisites
+
+Install the following components:
+
+### ☕ Java
+
+```bash
+sudo apt install openjdk-11-jre -y
+```
+
+### 🗄️ Cassandra
+
+```bash
+sudo apt install cassandra -y
+```
+
+### 🔍 Elasticsearch
+
+Follow official Elasticsearch install for Ubuntu 22.04:
+
+```bash
+# Install using Elastic GPG key and apt repository setup (refer to docs)
+```
+
+### 🐝 Install TheHive
+
+```bash
+# Download and install TheHive from official repo
+```
+
+> Full commands and configs will be updated as part of the next episode.
+
+---
+
+## ✅ Current Status
+
+| Component | Status      |
+| --------- | ----------- |
+| Wazuh     | ✅ Installed |
+| TheHive   | ✅ Installed |
+| Firewall  | ✅ Secured   |
+
+---
+
+## 🚀 Next Steps
+
+* Configure integration between Wazuh and TheHive
+* Connect Agents to Wazuh
+* Setup alert forwarding from Wazuh → TheHive
+* Add Cortex for automation
+
+---
+
+## 🗂️ Folder Structure (Planned)
+
+```
+/soc-automation/
+├── wazuh/
+│   └── install.sh
+├── thehive/
+│   ├── install.sh
+│   └── config/
+├── firewall/
+│   └── rules.md
+├── README.md
+└── screenshots/
+```
+
+---
+
+## 📎 Useful Links
+
+* [Wazuh Install Guide](https://documentation.wazuh.com/current/installation-guide/installing-wazuh-server/index.html)
+* [TheHive Project](https://thehive-project.org/)
+* [DigitalOcean](https://www.digitalocean.com/)
+* [What is my IP?](https://whatismyipaddress.com/)
+
+---
+
+Let me know if you want the installation shell scripts (`install.sh`) for Wazuh and TheHive added in this GitHub format too!
