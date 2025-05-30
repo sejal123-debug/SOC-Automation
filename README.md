@@ -1,5 +1,3 @@
-# SOC-Automation
-
 # SOC Automation Lab Environment Setup
 
 A complete on-premises SOC (Security Operations Center) lab built for DFIR (Digital Forensics & Incident Response), threat detection, and log analysis. This environment includes Active Directory, Windows 10, and Kali Linux machines, with centralized log collection and simulated attacks for detection engineering and investigation.
@@ -54,21 +52,7 @@ To build a self-contained lab for SOC automation and incident response training.
 
 ![soc2 drawio](https://github.com/user-attachments/assets/521099ef-db29-4f1a-9f0b-4af39e2b4808)
 
-- 
 
-##  IP Address Scheme
-
-| Device          | IP Address       |
-|-----------------|------------------|
-| Splunk Server   | 192.168.10.10    |
-| AD Server       | 192.168.10.5     |
-| Win10 Target    | DHCP Assigned    |
-| Kali Linux      | 192.168.10.250   |
-
-Domain Name: `mydfir.local`  
-Network Range: `192.168.10.0/24`
-
----
 
 ## 🛠️ Tools & Technologies
 
@@ -78,14 +62,10 @@ Network Range: `192.168.10.0/24`
 - **Windows Server 2019/2022**
 - **Windows 10 Enterprise**
 
-## Setup Instructions
-
-1. 
-   
-
 ##  Resources
 
-- [Atomic Red Team](https://github.com/redcanaryco/atomic-red-team)
+- Setup Instructions 
+- 
 - [SwiftOnSecurity Sysmon Config](https://github.com/SwiftOnSecurity/sysmon-config)
 - [Splunk Free Tier](https://www.splunk.com/en_us/download/splunk-enterprise.html)
 - [Windows Evaluation ISOs](https://www.microsoft.com/en-us/evalcenter/)
