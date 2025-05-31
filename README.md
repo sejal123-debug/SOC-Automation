@@ -57,7 +57,7 @@ To build a self-contained lab for SOC automation. The goal is to:
 ### Steps
 
 - Setup Instructions
-- 
+- Configuration
 
 
 SOC Enthusiast   
