@@ -56,7 +56,7 @@ To build a self-contained lab for SOC automation. The goal is to:
 
 ### Steps
 
-- [Setup Instructions](https://github.com/sejal123-debug/SOC-Automation/tree/main/Configuration)
+- [Setup Instructions](https://github.com/sejal123-debug/SOC-Automation/tree/main/soc_setup)
 - [Configuration](https://github.com/sejal123-debug/SOC-Automation/tree/main/Configuration)
 
 
