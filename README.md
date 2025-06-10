@@ -234,38 +234,14 @@ Open **PowerShell as Administrator**:
 ```powershell
 # Paste the installation script copied from Wazuh
 ```
-
 Start the service:
 
 ```powershell
 net start wazuhsvc
 ```
-
 Or go to `services.msc` and start "Wazuh Service".
 
  After a few moments, your agent should appear as “Active”.
-
----
-
-##  6. Goal: Detect Mimikatz
-
-Now that everything is configured:
-
-* Open the Wazuh Dashboard → Events
-* Run Mimikatz on the Windows VM
-* Wazuh + TheHive should alert based on Sysmon logs
-
----
-
-##  Final Checks
-
-Ensure the following services are running:
-
-```bash
-sudo systemctl status cassandra
-sudo systemctl status elasticsearch
-sudo systemctl status thehive
-```
 
 ---
 
