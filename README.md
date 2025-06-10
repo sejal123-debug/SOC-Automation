@@ -201,8 +201,7 @@ sudo systemctl status thehive
 ###  Find Admin Credentials
 
 ```bash
-cd /root
-tar -xvf wazuh-install.tar
+tar -xvf wazuh-install-files.tar
 cd wazuh-install-files
 cat wazuh-passwords.txt
 ```
