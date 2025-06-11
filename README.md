@@ -27,6 +27,7 @@ To build a self-contained lab for SOC automation. The goal is to:
 | **Wazuh**                   | Role                | SIEM (Security Information and Event Management)           |
 |                             | URL                 | [https://wazuh.com](https://wazuh.com)                     |
 |                             | Installation        | Curl installer from Wazuh official website                 |
+| **Wazuh Manager**           | Ubuntu 20.04+       | Log correlation + alerting                                 |
 |                             | Default User        | `admin` (password saved during install)                    |
 | **TheHive**                 | Role                | SOC Case Management & Automation Platform                  |
 |                             | URL                 | [https://thehive-project.org](https://thehive-project.org) |
@@ -36,7 +37,8 @@ To build a self-contained lab for SOC automation. The goal is to:
 |                             | Elasticsearch       | Data indexing and search for TheHive                       |
 | **Security Best Practices** | Password Manager    | Use for all VM logins and service accounts                 |
 |                             | Update/Upgrade      | `apt update && apt upgrade` after SSH into each VM         |
-
+| **Windows 10**              | Windows 10 Pro      | Endpoint + Sysmon + Mimikatz                               |
+| **Sysmon**                  | Windows utility     | Process telemetry                                          |
 
 ##  System Requirements
 
@@ -254,6 +256,224 @@ Or go to `services.msc` and start "Wazuh Service".
 
 ---
 
+
+#  Sysmon Log Ingestion and Mimikatz Detection Using Wazuh
+
+Configuring Windows 10 endpoint to forward Sysmon logs to a Wazuh manager, detect Mimikatz execution (even if renamed), and visualize events via the Wazuh dashboard. The setup emphasizes endpoint telemetry, rule customization, and real-time alerting as part of a **SOC automation/detection lab**.
+
+---
+
+## Project Structure
+
+```
+/wazuh-mimikatz-detection/
+├── Windows10/
+│   └── Sysmon installation & ossec.conf customization
+├── Wazuh-Manager/
+│   ├── Configuration of ossec.conf for log ingestion
+│   └── Custom rule creation
+├── Filebeat/
+│   └── Archive ingestion setup
+└── Docs/
+    └── Detection logic, screenshots, and references
+```
+
+---
+
+##  Step 1: Configure Wazuh Agent on Windows 10
+
+### Location of Wazuh agent configuration:
+
+```
+C:\Program Files (x86)\ossec-agent\ossec.conf
+```
+
+Make a **backup** of `ossec.conf` before modifying.
+
+### Update Log Collection Section
+
+In `ossec.conf`, modify the `<localfile>` section to ingest Sysmon logs:
+
+```xml
+<localfile>
+  <location>Microsoft-Windows-Sysmon/Operational</location>
+  <log_format>eventchannel</log_format>
+</localfile>
+```
+
+You can find the correct event log channel by going to:
+
+```
+Event Viewer → Applications and Services Logs → Microsoft → Windows → Sysmon → Operational → Properties
+```
+
+**Important**: Remove default `<localfile>` entries (e.g., `Application`, `Security`, `System`) if you're focusing solely on Sysmon.
+
+---
+
+##  Step 2: Restart Wazuh Agent Service
+
+```bash
+# On Windows (Run as Administrator):
+services.msc → Restart Wazuh Agent
+```
+
+Or via CLI:
+
+```powershell
+Restart-Service -Name wazuh
+```
+
+---
+
+##  Step 3: Configure Wazuh Manager to Archive All Events
+
+### Location:
+
+```
+/var/ossec/etc/ossec.conf
+```
+
+Set the following fields to `yes`:
+
+```xml
+<logall_json>yes</logall_json>
+<logall>yes</logall>
+```
+
+>  Restart the Wazuh manager to apply changes:
+
+```bash
+sudo systemctl restart wazuh-manager
+```
+
+---
+
+##  Step 4: Enable Filebeat Archive Ingestion
+
+Edit the Filebeat configuration file:
+
+```bash
+sudo nano /etc/filebeat/filebeat.yml
+```
+
+Find the archive ingestion section and set:
+
+```yaml
+archives:
+  enabled: true
+```
+
+Then restart Filebeat:
+
+```bash
+sudo systemctl restart filebeat
+```
+
+---
+
+##  Step 5: Create a New Index in Wazuh Dashboard
+
+1. Navigate to **Stack Management → Index Patterns**
+2. Click **Create index pattern**
+3. Name it: `wazuh-archives-*`
+4. Select `@timestamp` as the time field
+5. Save
+
+This lets you query archived logs in **Discover** view.
+
+---
+
+##  Step 6: Simulate Attack — Download & Run Mimikatz
+
+>  This step is for educational labs only. Do not perform this on a production system.
+
+1. Exclude your Downloads folder from Windows Defender
+2. Disable browser protection if Mimikatz is blocked
+3. Extract and run `mimikatz.exe` from PowerShell:
+
+```powershell
+cd Downloads\mimikatz
+.\mimikatz.exe
+```
+
+4. You can also **rename** the executable:
+
+```powershell
+Rename-Item .\mimikatz.exe .\you_are_awesome.exe
+.\you_are_awesome.exe
+```
+
+---
+
+##  Step 7: Create a Custom Wazuh Rule to Detect Mimikatz
+
+In Wazuh Dashboard:
+
+1. Go to **Rules → Manage Rule Files**
+2. Open `local_rules.xml`
+3. Paste the following rule:
+
+```xml
+<rule id="100002" level="15">
+  <if_sid>80001</if_sid>
+  <field name="OriginalFileName">(?i)mimikatz</field>
+  <description>Mimikatz use detected (via OriginalFileName)</description>
+  <mitre>
+    <id>T1003</id>
+  </mitre>
+</rule>
+```
+
+4. Save and restart the Wazuh Manager.
+
+> We use the `OriginalFileName` field to detect even **renamed** binaries.
+
+---
+
+##  Step 8: Verify Detection
+
+In **Discover → Archives Index**:
+
+* Search: `mimikatz`
+* You should see Event ID 1 (process creation) with:
+
+  * `OriginalFileName: Mimikatz`
+  * `Image: C:\Users\...\you_are_awesome.exe`
+
+You should also see an **alert** under Security Events if the rule triggered successfully.
+
+---
+
+##  Dashboard Screenshots
+
+
+##  Key Learnings
+
+* Wazuh by default only logs **alerts**, not raw events — unless configured.
+* You must enable `logall` and archive features to capture full telemetry.
+* **OriginalFileName** is a robust detection method to evade name obfuscation.
+* Custom rules help in building targeted detections aligned with MITRE ATT\&CK.
+
+---
+
+##  Future Enhancements
+
+* Automate rule deployment using Ansible or scripts
+* Extend detection to cover other credential dumping tools
+* Integrate with TheHive or a ticketing system for alert triage
+* Visualize attack timeline with Kibana Dashboards
+
+---
+
+##  References
+
+* [Wazuh Documentation](https://documentation.wazuh.com/)
+* [Sysmon Event IDs](https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon)
+* [Mimikatz GitHub](https://github.com/gentilkiwi/mimikatz)
+* [MITRE ATT\&CK - T1003](https://attack.mitre.org/techniques/T1003/)
+
+---
 
 SOC Enthusiast   
  LinkedIn: https://linkedin.com/in/sejalvetkar
