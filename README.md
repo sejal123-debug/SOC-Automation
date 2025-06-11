@@ -245,8 +245,25 @@ Or go to `services.msc` and start "Wazuh Service".
 
  After a few moments, your agent should appear as “Active”.
 
----
-
+  (OR)
+  
+* Run this command on Wazuh console
+  bash
+  ```
+  /var/ossec/bin/manage_agents
+  ```
+* select A (Add agent) -> give name of agent and public ip address of wazuh -> confirm adding it -> note the agent ID
+* select E (Extract key) -> give the agent ID -> note the extracted key
+  
+* Run this command on power shell
+  bash
+  ```
+   & "C:\Program Files (x86)\ossec-agent\manage_agents.exe"
+  ```
+* Select Insert -> paste the extracted key here -> Confirm adding it
+  
+  ---
+  
 ##  Access the Dashboards
 
 * **TheHive**: `http://<Hive_IP>:9000`
