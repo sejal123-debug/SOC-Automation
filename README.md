@@ -323,8 +323,12 @@ You can find the correct event log channel by going to:
 ```
 Event Viewer → Applications and Services Logs → Microsoft → Windows → Sysmon → Operational → Properties
 ```
+![Screenshot (1767)](https://github.com/user-attachments/assets/146fbd40-1507-4ee3-91fe-a294703a3e1e)
+
 
 **Important**: Remove default `<localfile>` entries (e.g., `Application`, `Security`, `System`) if you're focusing solely on Sysmon.
+
+![Screenshot (1768)](https://github.com/user-attachments/assets/b082734c-6c74-47b9-8a27-b0ad33d8a1e4)
 
 ---
 
@@ -334,13 +338,26 @@ Event Viewer → Applications and Services Logs → Microsoft → Windows → Sy
 # On Windows (Run as Administrator):
 services.msc → Restart Wazuh Agent
 ```
+![Screenshot (1769)](https://github.com/user-attachments/assets/53abdf10-207b-408e-b248-d888f1b0e95b)
+
 
 Or via CLI:
 
 ```powershell
 Restart-Service -Name wazuh
 ```
+![Screenshot (1770)](https://github.com/user-attachments/assets/dfe37139-58a5-451d-83e7-9e2598bb9b18)
 
+* Go to Powershell and run, the path should be the mimikatz x64
+  bash
+  ```
+  cd C:\Users\acer\Downloads\mimikatz_trunk\x64
+  .\mimikatz.exe 
+  ```
+  ![Screenshot (1772)](https://github.com/user-attachments/assets/ca7e0904-fef4-4633-beb7-9e78931a8e4b)
+
+  * check if you can see any events related to mimikatz in wazuh dashboard by going to the Events 
+  * there might be no events related to mimikatz and there are no rules or alerts because Wazuh by default does not log everything and only logs things when a rule or alert was            * triggered, we can change this by going to **Wazuh Manager** and configuring the ossec.conf file
 ---
 
 ##  Step 3: Configure Wazuh Manager to Archive All Events
@@ -363,7 +380,14 @@ Set the following fields to `yes`:
 ```bash
 sudo systemctl restart wazuh-manager
 ```
-
+This force Wazuh to begin archiving all the logs and put them into a file called Archives, this file will be located in /var/ossec/logs/archives/
+```
+cd /var/ossec/logs/archives/
+ls
+```
+These files are created and the logs will be placed in here 
+* In order for Wazuh to start ingesting these logs we need to change our configuration in file beat
+  
 ---
 
 ##  Step 4: Enable Filebeat Archive Ingestion
@@ -380,6 +404,7 @@ Find the archive ingestion section and set:
 archives:
   enabled: true
 ```
+![Screenshot (1774)](https://github.com/user-attachments/assets/881261b5-126d-4c4a-aa8f-77395c2e9574)
 
 Then restart Filebeat:
 
@@ -392,13 +417,20 @@ sudo systemctl restart filebeat
 ##  Step 5: Create a New Index in Wazuh Dashboard
 
 1. Navigate to **Stack Management → Index Patterns**
-2. Click **Create index pattern**
-3. Name it: `wazuh-archives-*`
-4. Select `@timestamp` as the time field
-5. Save
+   * We want to create an index for archives that way we can search for all the logs regardless if Wazuh triggers an alert 
+3. Click **Create index pattern**
+4. Name it: `wazuh-archives-*`
+5. Select `@timestamp` as the time field
+6. Save
 
 This lets you query archived logs in **Discover** view.
 
+We want the manager to archive the logs and then allow us to search for them
+
+![Screenshot (1781)](https://github.com/user-attachments/assets/723bfe41-24bd-458e-87b2-f4463ffe3b6b)
+You can try run the above command to check the archives, but if you don't see anything in archives then a mimikatz event did not generate even in the dashboard.
+![Screenshot (1782)](https://github.com/user-attachments/assets/2c9ad44e-a979-4506-b3a0-ac30fc0bf07a)
+As you can see there is no mimikatz events
 ---
 
 ##  Step 6: Simulate Attack — Download & Run Mimikatz
@@ -461,9 +493,6 @@ In **Discover → Archives Index**:
 You should also see an **alert** under Security Events if the rule triggered successfully.
 
 ---
-
-##  Dashboard Screenshots
-
 
 ##  Key Learnings
 
